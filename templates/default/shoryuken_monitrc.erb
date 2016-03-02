@@ -1,19 +1,19 @@
 <% @workers.each do |worker, options| %>
   <% (options[:process_count] || 1).times do |n| %>
   <% identifier = "#{@application}-#{worker}#{n+1}" %>
-  <% conf_file = "#{@deploy[:deploy_to]}/shared/config/sidekiq_#{worker}#{n+1}.yml" %>
-  <% pid_file = "#{@deploy[:deploy_to]}/shared/pids/sidekiq_#{identifier}.pid" %>
-  <% log_file = "#{@deploy[:deploy_to]}/shared/log/sidekiq_#{identifier}.log" %>
+  <% conf_file = "#{@deploy[:deploy_to]}/shared/config/shoryuken_#{worker}#{n+1}.yml" %>
+  <% pid_file = "#{@deploy[:deploy_to]}/shared/pids/shoryuken_#{identifier}.pid" %>
+  <% log_file = "#{@deploy[:deploy_to]}/shared/log/shoryuken_#{identifier}.log" %>
   <% if @syslog %>
-    <% ident = @syslog_ident ? @syslog_ident : "sidekiq-#{identifier}" %>
+    <% ident = @syslog_ident ? @syslog_ident : "shoryuken-#{identifier}" %>
     <% syslog = "2>&1 | logger -t #{ident}" %>
   <% end %>
 
-check process sidekiq_<%= identifier %>
+check process shoryuken_<%= identifier %>
   with pidfile <%= pid_file %>
-  start program = "/bin/su - <%= @deploy[:user] %> -c 'source <%= @deploy[:deploy_to] %>/shared/app.env && cd <%= @deploy[:current_path] %> && RAILS_ENV=<%= @deploy[:rails_env] %> bundle exec sidekiq -C <%= conf_file %> -P <%= pid_file %> -L <%= log_file %> <%= syslog %>'" with timeout 90 seconds
+  start program = "/bin/su - <%= @deploy[:user] %> -c 'source <%= @deploy[:deploy_to] %>/shared/app.env && cd <%= @deploy[:current_path] %> && RAILS_ENV=<%= @deploy[:rails_env] %> bundle exec shoryuken -R -C <%= conf_file %> -P <%= pid_file %> -L <%= log_file %> <%= syslog %>'" with timeout 90 seconds
   stop  program = "/bin/su - <%= @deploy[:user] %> -c 'kill -s TERM `cat <%= pid_file %>`'" with timeout 90 seconds
-  group sidekiq_<%= @application %>_group
+  group shoryuken_<%= @application %>_group
 
   <% end %>
 <% end %>
